@@ -26,12 +26,16 @@ const User = new mongoose.Schema({
         type: Date,
         default: Date.now()
     },
+    role: {
+        type: String,
+        enum: ['User', 'Admin', 'SuperAdmin'],
+        default: 'User'
+    },
     modified_at: {
         type: Date,
     },
     deleted_at: {
-        type: Date,
-
+        type: Date
     }
 });
 

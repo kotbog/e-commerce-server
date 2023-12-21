@@ -1,3 +1,4 @@
+import { log } from 'util';
 import ProductModel from '../Models/Product.js'
 import {convertToBase64} from "../util/ConvertToBase64.js";
 import * as multiparty from 'multiparty';
@@ -22,19 +23,20 @@ export const getProductByID = async (req, res ,next) => {
 }
 
 export const addProduct = async (req, res, next) => {
-    
+
     try {
-        let form = new multiparty.Form();
+        let form = new multiparty.Form();        
         form.parse(req, async (err, fields, files) => {
-            const{name, SKU, price, desc} = fields;
+            const{name, SKU, price, desc, category} = fields;
             const{imgs} = files;
-            const base64Images = convertToBase64(imgs);          
+            const base64Images = convertToBase64(imgs);     
             const product = await ProductModel.create({
                 name: name[0],
                 desc: desc[0],
                 price: price[0],
                 SKU: SKU[0],
-                images: base64Images
+                images: base64Images,
+                category: category[0]
             });
             return res.status(201).json({message: "User successfully added", product});
         })
@@ -77,16 +79,17 @@ export const updateProduct = async (req, res) => {
         const id = req.params['id'];
         let form = new multiparty.Form();
         form.parse(req, async (err, fields, files) => {
+            const{name, SKU, price, desc, category} = fields;
             const{imgs} = files;
-            let base64Images = null;
-            let updates = {};              
-            for (const key in fields) {
-                updates[key] = fields[key][0];
-            }
-            if(imgs) {
-                base64Images = convertToBase64(imgs);
-                updates.images = base64Images;
-            }
+            let updates = { // data to update
+                name: name[0],
+                desc: desc[0],
+                price: price[0],
+                SKU: SKU[0],
+                category: category[0]
+            };
+            if(imgs) updates.images = convertToBase64(imgs);
+                
             const product = await ProductModel.findByIdAndUpdate({_id: id}, updates);
             if(!product) {
                 return res.json({message: "There is no product with id: " + id}).status(200);

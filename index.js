@@ -35,10 +35,15 @@ app.use(cookieParser());
 
 
 
-app.use(express.json());
-app.use(express.urlencoded({extended: true}));
+app.use(express.json({
+    verify: (req, res, buf) => {
+        req.rawBody = buf.toString()
+    },
+    limit: '50mb'
+}));
+app.use(express.urlencoded({extended: true,  limit: '50mb'}));
 
 app.use("/", AuthRoute);
 app.use("/product", ProductRoute);
-app.use("/category", CategoryRoute)
+app.use("/category", CategoryRoute);
 app.use("/cart", ShoppingSessionRoute);

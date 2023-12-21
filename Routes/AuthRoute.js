@@ -1,6 +1,6 @@
 import express from "express";
-import {LogIn, SignUp} from "../Controllers/AuthController.js";
-import {userVerification} from "../Middlewares/AuthMiddleware.js";
+import {LogIn, SignUp, refreshToken, removeToken} from "../Controllers/AuthController.js";
+
 
 
 const router = express.Router();
@@ -15,9 +15,10 @@ router.post('/signup', SignUp);
 // @access Public
 router.post('/login', LogIn);
 
-// @route POST /
-// @description verification with token
-// @access Public
-router.post('/', userVerification);
+router.post('/refresh', refreshToken);
+
+router.delete('refresh', removeToken);
+
+
 
 export default router;

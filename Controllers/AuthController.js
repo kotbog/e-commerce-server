@@ -1,55 +1,96 @@
 import {createToken} from "../util/Token.js";
 import User from "../Models/User.js";
 import bcrypt from "bcrypt";
+import { logInBodyValidation, signUpBodyValidation } from "../util/validationAuthSchema.js";
+import generateTokens from "../util/GenerateTokens.js";
+import verifyRefreshToken from "../util/verifyRefreshToken.js";
+import UserToken from "../Models/UserToken.js";
+import { log } from "util";
 
 
 export const SignUp = async (req, res, next) => {
     try {
-        const {email, password, first_name, last_name, createdAt} = req.body;
+        const {error} = signUpBodyValidation(req.body);
+        if(error) return res.status(400).json({error: true, message: error.details[0].message});
 
-        const existingUser = await User.findOne({email});
-        if(existingUser) {
-            return res.json({ message: "User already exists" });
-        }
-        const user = await User.create({email, password, first_name, last_name, createdAt});
-        const token = createToken(user._id);
-        res.cookie("token", token, {
-            withCredentials: true,
-            httpOnly: false
-        });
-        res
-            .status(201)
-            .json({ message: "User signed in successfully", success: true, user });
-        next();
-    } catch (err) {
-        console.error(err);
+        const user = await User.findOne({email: req.body.email});
+        if(user) return res.status(400).json({error: true, message: 'User already exists.'});
+
+        await new User({...req.body}).save();
+
+        res.status(201).json({error: false, message: 'Account created successfully.', })    
+        
+    } catch(e) {
+        console.log(e);
+        return res.status(500).json({error: true, message: "Internal server error."});
     }
 }
 
 export const LogIn = async (req, res, next) => {
     try {
-        const {email, password} = req.body;
-        if (!email || !password) {
-            return res.json({message: "All fields required!"})
-        }
-        const user = await User.findOne({email});
-        if (!user) {
-            return res.json({message: "Incorrect email or password!"});
-        }
-        const auth = await bcrypt.compare(password, user.password);
-        if (!auth) {
-            return res.json({message: "Incorrect email or password!"});
-        }
-        const token = createToken(user._id);
-        res.cookie("token", token, {
-            withCredentials: true,
-            httpOnly: false
-        });
-        res
-            .status(201)
-            .json({message: "User logged in successfully", success: true, id: user._id});
-        next();
-    } catch (err) {
-        console.error(err);
+        const {error} = logInBodyValidation(req.body);
+
+        if(error) return res.status(400).json({error: true, message: error.details[0].message});
+        
+        const user = await User.findOne({email: req.body.email});
+
+        if(!user) return res.status(400).json({error: true, message: 'Invalid email or password.'})
+
+        const verifiedPassword = await bcrypt.compare(req.body.password, user.password);
+        
+        if(!verifiedPassword) return res.status(400).json({error: true, message: 'Invalid email or password.'})
+
+        const {accessToken, refreshToken} = await generateTokens(user);
+        
+
+        res.cookie('refreshToken', JSON.stringify({refreshToken}), {
+            httpOnly: true,
+            //secure: true,
+            sameSite: true,
+            maxAge: 604800000 // 7 days 
+        })
+        return res.status(200).json({error: false, token: accessToken, message: "Logged In successfully."})
+    } catch (err) {console.log(err);
+        return res.status(500).json({error: true, message: "Internal server error."});
     }
 }
+
+export const refreshToken = async (req, res) => {
+    try {
+        verifyRefreshToken(req.cookie.refreshToken)
+            .then(({details}) => {
+                const payload = {_id: details.userId}
+                const accessToken = createToken(payload, '14m');
+                res.status(200).json({
+                    error: false,
+                    accessToken,
+                    message: "Access token created successfully",
+                });
+            })
+            .catch((e) => {
+                return res.status(400).json({error: true, message: e})
+            }) 
+        
+    } catch(e) {
+        return res.status(500).json({error: true, message: "Internal server error."});
+    }   
+
+}
+
+export const removeToken = async (req, res) => {
+    try {
+        const userToken = await UserToken.findOne({token: req.cookie.refreshToken});
+
+        if(!userToken) return res.status(200).json({error: false, message: "Logged Out successfully."});
+
+        await userToken.remove();
+
+        res.clearCookie('refreshToken');
+
+        return res.status(200).json({error: false, message: "Logged Out successfully."});
+
+    } catch(e) {
+        return res.status(500).json({error: true, message: "Internal server error."});
+    }   
+}
+

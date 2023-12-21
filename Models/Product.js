@@ -32,8 +32,8 @@ const Product = new mongoose.Schema({
     deleted_at: {
         type: Date,
     },
-    category_id: {
-        type: mongoose.Types.ObjectId,
+    category: {
+        type: String,
         ref: 'ProductCategory'
     },
     inventory_id: {
