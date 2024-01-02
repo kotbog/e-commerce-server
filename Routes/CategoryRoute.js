@@ -5,7 +5,7 @@ import { userVerification } from "../Middlewares/AuthMiddleware.js";
 
 const router = express.Router();
 
-router.get("/", userVerification, getCategory);
+router.get("/", getCategory);
 
 router.post("/", addCategory);
 

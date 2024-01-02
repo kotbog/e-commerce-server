@@ -40,22 +40,23 @@ export const SignUp = async (req, res, next) => {
 
 export const LogIn = async (req, res, next) => {
     try {
-        const { error } = logInBodyValidation(req.body);
+        const body = req.body;
+        const { error } = logInBodyValidation(body);
 
         if (error)
             return res
                 .status(400)
                 .json({ error: true, message: error.details[0].message });
 
-        const user = await User.findOne({ email: req.body.email });
-
+        const user = await User.findOne({ email: body.email });
+        console.log(user);
         if (!user)
             return res
                 .status(400)
                 .json({ error: true, message: "Invalid email or password." });
 
         const verifiedPassword = await bcrypt.compare(
-            req.body.password,
+            body.password,
             user.password
         );
 
@@ -69,12 +70,19 @@ export const LogIn = async (req, res, next) => {
         res.cookie("refreshToken", JSON.stringify({ refreshToken }), {
             httpOnly: true,
             //secure: true,
-            sameSite: true,
-            maxAge: 604800000, // 7 days
+            SameSite: "none",
+            maxAge: 2592000000, // 30 days
         });
+
+        res.cookie("accessToken", JSON.stringify({ accessToken }), {
+            httpOnly: true,
+            //secure: true,
+            SameSite: "none",
+            maxAge: 840000, // 14 min
+        });
+
         return res.status(200).json({
             error: false,
-            token: accessToken,
             message: "Logged In successfully.",
         });
     } catch (err) {
@@ -92,9 +100,18 @@ export const refreshToken = async (req, res) => {
                 console.log(details);
                 const payload = { _id: details.id };
                 const accessToken = createToken(payload, "14m");
+
+                res.cookie("accessToken", JSON.stringify({ accessToken }), {
+                    // set token in cookies
+                    httpOnly: true,
+                    //secure: true,
+                    SameSite: "none",
+                    maxAge: 840000, // 14 min
+                });
+
                 return res.status(200).json({
                     error: false,
-                    accessToken,
+                    userId: payload._id,
                     message: "Access token created successfully",
                 });
             })
@@ -115,7 +132,7 @@ export const removeToken = async (req, res) => {
         await UserToken.findOneAndRemove({ token: tokenParsed });
 
         res.clearCookie("refreshToken");
-
+        res.clearCookie("accessToken");
         return res
             .status(200)
             .json({ error: false, message: "Logged Out successfully." });

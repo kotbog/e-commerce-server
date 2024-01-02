@@ -1,10 +1,11 @@
 import express from "express";
 import {
-  LogIn,
-  SignUp,
-  refreshToken,
-  removeToken,
+    LogIn,
+    SignUp,
+    refreshToken,
+    removeToken,
 } from "../Controllers/AuthController.js";
+import { userVerification } from "../Middlewares/AuthMiddleware.js";
 
 const router = express.Router();
 
@@ -21,5 +22,13 @@ router.post("/login", LogIn);
 router.post("/refresh", refreshToken);
 
 router.delete("/refresh", removeToken);
+
+router.get("/me", userVerification, (req, res) => {
+    return res.json({
+        error: false,
+        message: "Authenticated successfully.",
+        userId: req.userId,
+    });
+});
 
 export default router;
