@@ -23,11 +23,12 @@ export const getProductByID = async (req, res ,next) => {
 }
 
 export const addProduct = async (req, res, next) => {
-
+    console.log('add')
     try {
         let form = new multiparty.Form();        
         form.parse(req, async (err, fields, files) => {
             const{name, SKU, price, desc, category} = fields;
+            console.log(fields)
             const{imgs} = files;
             const base64Images = convertToBase64(imgs);     
             const product = await ProductModel.create({
@@ -47,7 +48,7 @@ export const addProduct = async (req, res, next) => {
 
 export const getProducts = async (req, res) => {
     try {
-        const params = req.body;
+        const params = req.query;
 
         const products = await ProductModel.find(params, 'name price images _id');
 

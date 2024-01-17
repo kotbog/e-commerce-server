@@ -64,9 +64,9 @@ export const LogIn = async (req, res, next) => {
             return res
                 .status(400)
                 .json({ error: true, message: "Invalid email or password." });
-
-        const { accessToken, refreshToken } = await generateTokens(user);
-
+        console.log("userID: " + user._id);
+        const { accessToken, refreshToken } = await generateTokens(user._id);
+        const {password, ...user_data} = user._doc;
         res.cookie("refreshToken", JSON.stringify({ refreshToken }), {
             httpOnly: true,
             //secure: true,
@@ -82,6 +82,7 @@ export const LogIn = async (req, res, next) => {
         });
 
         return res.status(200).json({
+            user: user_data,
             error: false,
             message: "Logged In successfully.",
         });
@@ -97,7 +98,7 @@ export const refreshToken = async (req, res) => {
     try {
         verifyRefreshToken(req.cookies.refreshToken)
             .then(({ details }) => {
-                console.log(details);
+                console.log("details",details);
                 const payload = { _id: details.id };
                 const accessToken = createToken(payload, "14m");
 
@@ -111,7 +112,7 @@ export const refreshToken = async (req, res) => {
 
                 return res.status(200).json({
                     error: false,
-                    userId: payload._id,
+                    user: details,
                     message: "Access token created successfully",
                 });
             })
@@ -130,7 +131,7 @@ export const removeToken = async (req, res) => {
         const tokenParsed = JSON.parse(req.cookies.refreshToken).refreshToken;
 
         await UserToken.findOneAndRemove({ token: tokenParsed });
-
+        console.log(req.cookies);
         res.clearCookie("refreshToken");
         res.clearCookie("accessToken");
         return res

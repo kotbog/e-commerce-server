@@ -27,7 +27,7 @@ router.get("/me", userVerification, (req, res) => {
     return res.json({
         error: false,
         message: "Authenticated successfully.",
-        userId: req.userId,
+        user: req.user,
     });
 });
 

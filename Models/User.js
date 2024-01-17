@@ -8,8 +8,7 @@ const User = new mongoose.Schema({
         unique: true
     },
     password: {
-        type: String,
-        required: true
+        type: String
     },
     first_name: {
         type: String,
@@ -28,7 +27,7 @@ const User = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['User', 'Admin', 'SuperAdmin'],
+        enum: ['Unauthorised', 'User', 'Admin', 'SuperAdmin'],
         default: 'User'
     },
     modified_at: {
@@ -40,7 +39,7 @@ const User = new mongoose.Schema({
 });
 
 User.pre("save", async function() {
-    this.password = await bcrypt.hash(this.password, 12)
+    if(this.password) this.password = await bcrypt.hash(this.password, 12)
 });
 
 export default mongoose.model("User", User);

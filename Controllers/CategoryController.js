@@ -24,11 +24,11 @@ export const addCategory = async (req, res) => {
 export const getCategory = async (req, res) => {
     try {
         const {params} = req.body;
-        const categories = await ProductCategoryModel.find(params, 'name');
+        const categories = await ProductCategoryModel.find(params, 'name _id');
         if(!categories) {
             res.status(200);
             return res.json({message: 'There is no categories with such params.'});
         }
-        return res.json(categories).status(201);
+        return res.json({error: false, categories}).status(201);
     } catch(e) {console.error(e);}
 }

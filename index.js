@@ -7,7 +7,7 @@ import AuthRoute from "./Routes/AuthRoute.js";
 import ProductRoute from "./Routes/ProductRoute.js";
 import CartRoute from "./Routes/CartRoute.js";
 import CategoryRoute from "./Routes/CategoryRoute.js";
-
+import OrderRoute from './Routes/OrderRoute.js'
 dotenv.config();
 
 const { PORT, MONGO_URL } = process.env;
@@ -27,7 +27,7 @@ app.listen(PORT, () => console.log("Server is listening on port " + PORT));
 
 app.use(
     cors({
-        origin: ["http://localhost:4000"],
+        origin: ["http://localhost:4000", "http://localhost:3000", "http://localhost:3001"],
         methods: ["GET", "POST", "PUT", "DELETE"],
         credentials: true,
     })
@@ -45,7 +45,9 @@ app.use(
 );
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
+
 app.use("/", AuthRoute);
 app.use("/product", ProductRoute);
 app.use("/category", CategoryRoute);
 app.use("/cart", CartRoute);
+app.use("/order", OrderRoute)

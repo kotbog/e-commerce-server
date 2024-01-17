@@ -2,9 +2,8 @@ import jwt from "jsonwebtoken";
 import User from "../Models/User.js";
 export const userVerification = (req, res, next) => {
     try {
-        console.log(req.cookies);
-        const token = "";
-        console.log(token);
+        const token = req.cookies.accessToken ? JSON.parse(req.cookies.accessToken).accessToken : undefined;
+
         if (!token) {
             return res.json({
                 error: true,
@@ -18,9 +17,13 @@ export const userVerification = (req, res, next) => {
                     message: "invalid access token. Not verified.",
                 });
             }
+            console.log("data: "+ data._id + " " + data.user);
             const user = await User.findOne({ _id: data.id });
+            console.log("user:" +user)
             if (user) {
-                req.userId = user._id;
+                const {password, ...user_data} = user._doc;
+
+                req.user = user_data;
                 return next();
             }
             return res.json({

@@ -1,5 +1,10 @@
 import CartItem from "../Models/CartItem.js";
 import Product from "../Models/Product.js";
+import PaymentDetails from "../Models/PaymentDetails.js";
+import User from "../Models/User.js";
+import paymentDetails from "../Models/PaymentDetails.js";
+import OrderDetails from "../Models/OrderDetails.js";
+import OrderItems from "../Models/OrderItems.js";
 
 export const getCartItems = async (req, res) => {
     try {
@@ -13,16 +18,16 @@ export const getCartItems = async (req, res) => {
                     { _id: item.product_id },
                     "name price images"
                 );
-                console.log(product);
-                return {
+                if(product) return {
+                    _id: item._id,
                     quantity: item.quantity,
                     name: product.name,
                     price: product.price,
                     images: product.images[0],
+                    SKU: product.SKU
                 };
             })
         );
-        console.log(resItems);
         return res
             .status(200)
             .json({ message: "Cart successfully found", resItems });
@@ -34,8 +39,11 @@ export const getCartItems = async (req, res) => {
 
 export const addCartItem = async (req, res) => {
     try {
-        const { userId, productId, quantity } = req.body;
-        const params = { user_id: userId, product_id: productId };
+
+        const { userId, productData } = req.body;
+        const {id, quantity} = productData;
+
+        const params = { user_id: userId, product_id: id };
 
         const item = await CartItem.findOne(params);
         if (!item) {
@@ -48,7 +56,7 @@ export const addCartItem = async (req, res) => {
                 .json({ message: "Item added successfully." });
         }
         await CartItem.findOneAndUpdate(params, {
-            quantity: Number(item.quantity) + Number(quantity),
+            quantity: String(Number(item.quantity) + Number(quantity)),
         });
         return res.status(200).json({ message: "Item added successfully." });
     } catch (e) {
@@ -56,3 +64,4 @@ export const addCartItem = async (req, res) => {
         return res.status(500).json({ message: "Internal sever error." });
     }
 };
+
