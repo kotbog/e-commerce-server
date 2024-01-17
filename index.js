@@ -27,7 +27,7 @@ app.listen(PORT, () => console.log("Server is listening on port " + PORT));
 
 app.use(
     cors({
-        origin: ["http://localhost:4000", "http://localhost:3000", "http://localhost:3001", "https://cozy-conkies-18f877.netlify.app"],
+        origin: ["http://localhost:4000", "http://localhost:3000", "http://localhost:3001", `${process.env.CORS_POLICY}`],
         methods: ["GET", "POST", "PUT", "DELETE"],
         credentials: true,
     })
