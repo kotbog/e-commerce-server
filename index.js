@@ -50,4 +50,4 @@ app.use("/", AuthRoute);
 app.use("/product", ProductRoute);
 app.use("/category", CategoryRoute);
 app.use("/cart", CartRoute);
-app.use("/order", OrderRoute)
+app.use("/order", OrderRoute);

@@ -1,10 +1,20 @@
 import express from "express";
-import {checkoutOrder, getOrders} from "../Controllers/OrderController.js";
+import {
+    checkoutOrder,
+    getOrderById,
+    getOrderDetails,
+    updateOrders,
+    updateOrderStatus
+} from "../Controllers/OrderController.js";
 
 const router = express.Router();
 
-router.get('/', getOrders);
+router.get('/', getOrderDetails);
 
-router.post('/', checkoutOrder)
+router.post('/', checkoutOrder);
+
+router.get('/:orderId', getOrderById);
+
+router.put('/status', updateOrderStatus)
 
 export default router;

@@ -8,6 +8,11 @@ const OrderDetails = new mongoose.Schema({
     total: {
         type: Number,
     },
+    status: {
+      type: String,
+        enum: ['Done', 'Processing', 'Failed'],
+        default: 'Processing'
+    },
     created_at: {
         type: Date,
         default: Date.now(),
