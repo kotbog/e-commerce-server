@@ -1,4 +1,3 @@
-import { log } from 'util';
 import ProductModel from '../Models/Product.js'
 import {convertToBase64} from "../util/ConvertToBase64.js";
 import * as multiparty from 'multiparty';
@@ -6,7 +5,7 @@ import * as multiparty from 'multiparty';
 
 
 
-export const getProductByID = async (req, res ,next) => {
+export const getProductByID = async (req, res) => {
     try {
         const id = req.params['id'];
 
@@ -22,7 +21,7 @@ export const getProductByID = async (req, res ,next) => {
     }
 }
 
-export const addProduct = async (req, res, next) => {
+export const addProduct = async (req, res) => {
     console.log('add')
     try {
         let form = new multiparty.Form();        
@@ -98,6 +97,18 @@ export const updateProduct = async (req, res) => {
             return res.json({message: 'Product successfully updated'}).status(201); 
         });       
     } catch(e) {
+        console.error(e);
+    }
+}
+
+
+export const searchProduct = async (req, res) => {
+    try {
+        const reqName = req.query.name;
+        const products = await ProductModel.find({name: new RegExp(reqName, 'i')});
+        if(!products || !products.length) return res.status(400).json({error: true, message: "Products not found."})
+        return res.status(200).json({error: false, message: "Products found successfully.", products})
+    } catch (e) {
         console.error(e);
     }
 }
